@@ -4,6 +4,7 @@ import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
 import android.location.Address;
 import android.location.Geocoder;
 import android.location.Location;
@@ -16,6 +17,9 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
+import android.util.TypedValue;
+import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -23,6 +27,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
+import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -39,6 +44,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private LocationListener locationListener;
     private static final String TAG = "MapsActivity";
     int checkTime = 0;
+    //new
+    //private GoogleMap mMap;
+    View mapView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +56,20 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
+
+        ///code hack for myLocation Button position
+        View locationButton = ((View) mapFragment.getView().findViewById(Integer.parseInt("1")).getParent()).findViewById(Integer.parseInt("2"));
+        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) locationButton.getLayoutParams();
+
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_LEFT, RelativeLayout.TRUE);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_RIGHT, 0);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
+
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_END, 0);
+        rlp.addRule(RelativeLayout.ALIGN_END, 0);
+        rlp.addRule(RelativeLayout.ALIGN_PARENT_LEFT);
+        rlp.setMargins(30, 0, 0, 40);
     }
 
 
@@ -63,9 +85,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     @Override
-    public void onMapReady(GoogleMap googleMap) {
+    public void onMapReady(final GoogleMap googleMap) {
 
+        //googleMap = mapView.getMap();
         mMap = googleMap;
+
 
         // location manager and permission check
 
@@ -77,28 +101,66 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 Log.d(TAG, "onLocationChanged: " + location.getAltitude());
                 double lat = location.getLatitude();
                 double lng = location.getLongitude();
-                LatLng myLocation = new LatLng(lat, lng);
+                final LatLng myLocation = new LatLng(lat, lng);
                 mMap.clear();
-                mMap.addMarker(new MarkerOptions().position(myLocation));
+                //mMap.addMarker(new MarkerOptions().position(myLocation));
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
                 mMap.animateCamera(CameraUpdateFactory.zoomIn());
                 mMap.setBuildingsEnabled(true);
+
+                //adding circle
+                mMap.addCircle(new CircleOptions()
+                        .center(new LatLng(location.getLatitude(), location.getLongitude()))
+                        .radius(40)
+                        .strokeColor(Color.WHITE)
+                        .fillColor(Color.GREEN));
+
+                if (ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(MapsActivity.this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+                    // TODO: Consider calling
+                    //    ActivityCompat#requestPermissions
+                    // here to request the missing permissions, and then overriding
+                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                    //                                          int[] grantResults)
+                    // to handle the case where the user grants the permission. See the documentation
+                    // for ActivityCompat#requestPermissions for more details.
+                    return;
+                }
+                // it will enable my location button
+
+                mMap.setMyLocationEnabled(true);
+
+
 
                 //styling map
                 MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(MapsActivity.this,
                         R.raw.style_json);
                 mMap.setMapStyle(style);
 
-                // Construct a CameraPosition focusing on Mountain View and animate the camera to that position.
-                CameraPosition cameraPosition = new CameraPosition.Builder()
-                        .target(myLocation)      // Sets the center of the map to Mountain View
-                        .zoom(17)                   // Sets the zoom
-                        .bearing(90)                // Sets the orientation of the camera to east
-                        .tilt(30)                   // Sets the tilt of the camera to 30 degrees
-                        .build();                   // Creates a CameraPosition from the builder
+                mMap.setOnMyLocationButtonClickListener(new GoogleMap.OnMyLocationButtonClickListener() {
+                    @Override
+                    public boolean onMyLocationButtonClick() {
+                        //Toast.makeText(MapsActivity.this, "Hello, World!", Toast.LENGTH_SHORT).show();
 
-                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                        // Zoom out to zoom level 10, animating with a duration of 2 seconds.
+                        mMap.animateCamera(CameraUpdateFactory.zoomTo(10), 2000, null);
+
+                        // Construct a CameraPosition focusing on Mountain View and animate the camera to that position.
+                        CameraPosition cameraPosition = new CameraPosition.Builder()
+                                .target(myLocation)      // Sets the center of the map to Mountain View
+                                .zoom(17)                   // Sets the zoom
+                                .bearing(90)                // Sets the orientation of the camera to east
+                                .tilt(40)                   // Sets the tilt of the camera to 30 degrees
+                                .build();                   // Creates a CameraPosition from the builder
+
+                        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+
+
+                        return true;
+                    }
+                });
+
 
                 Geocoder geocoder = new Geocoder(getApplicationContext(), Locale.getDefault());
 
@@ -118,7 +180,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         intent.putExtra("country", country);
                         intent.putExtra("dist", dist);
-                        //startActivity(intent);
+                        startActivity(intent);
                     }
 
                     //Toast.makeText(MapsActivity.this, dist, Toast.LENGTH_SHORT).show();
