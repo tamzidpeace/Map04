@@ -12,7 +12,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 
-public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity /*implements OnMapReadyCallback*/ {
 
     private GoogleMap map;
 
@@ -22,9 +22,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+        /*SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map2);
-        mapFragment.getMapAsync(this);
+        mapFragment.getMapAsync(this);*/
 
         TextView textView = findViewById(R.id.textView);
 
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     }
 
-    @Override
+    /*@Override
     public void onMapReady(GoogleMap googleMap) {
 
         map = googleMap;
@@ -47,5 +47,5 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         googleMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
 
 
-    }
+    }*/
 }

@@ -30,6 +30,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.CircleOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.io.IOException;
@@ -90,9 +91,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //googleMap = mapView.getMap();
         mMap = googleMap;
 
+        //making static
+        
 
         // location manager and permission check
-
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         locationListener = new LocationListener() {
             @Override
@@ -103,7 +105,34 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 double lng = location.getLongitude();
                 final LatLng myLocation = new LatLng(lat, lng);
                 mMap.clear();
+
+
                 //mMap.addMarker(new MarkerOptions().position(myLocation));
+
+                // trying to add marker by clicking
+                mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                    @Override
+                    public void onMapClick(LatLng latLng) {
+                        //Log.d(TAG, "onMapClick: " + latLng.toString());
+                        Log.d(TAG, "onMapClick: " + latLng.toString());
+                        //mMap.clear();
+                        mMap.addMarker(new MarkerOptions().position(latLng));
+                        double latitude = latLng.latitude;
+                        double longitude = latLng.longitude;
+                        Toast.makeText(MapsActivity.this, "Lat= " + latitude + "\nLng= " + longitude, Toast.LENGTH_SHORT).show();
+
+                    }
+                });
+                mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+                    @Override
+                    public boolean onMarkerClick(Marker marker) {
+                        Toast.makeText(MapsActivity.this, "Marker Clicked", Toast.LENGTH_SHORT).show();
+                        return true;
+                    }
+                });
+
+                /*end*/
+
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(myLocation));
                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 15));
                 mMap.animateCamera(CameraUpdateFactory.zoomIn());
@@ -180,7 +209,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                         intent.putExtra("country", country);
                         intent.putExtra("dist", dist);
-                        startActivity(intent);
+                        //startActivity(intent);
                     }
 
                     //Toast.makeText(MapsActivity.this, dist, Toast.LENGTH_SHORT).show();
@@ -215,6 +244,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 1, 500, locationListener);
         }
     }
+
+
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
